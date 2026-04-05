@@ -484,12 +484,28 @@ export default function SceneMatrix() {
     }
   };
 
-  const doExport = () => {
-    const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url;
-    a.download = (project.name || "scene-matrix") + ".json";
-    a.click(); URL.revokeObjectURL(url);
+  const doExport = async () => {
+    const dataStr = JSON.stringify(project, null, 2);
+    const defaultName = (project.name || "scene-matrix") + ".json";
+    if (window.showSaveFilePicker) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: defaultName,
+          types: [{ description: 'JSONファイル', accept: { 'application/json': ['.json'] } }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(dataStr);
+        await writable.close();
+      } catch (e) {
+        if (e.name !== 'AbortError') console.error("Export failed:", e);
+      }
+    } else {
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url;
+      a.download = defaultName;
+      a.click(); URL.revokeObjectURL(url);
+    }
   };
 
   const doImport = (data) => {
@@ -620,7 +636,8 @@ export default function SceneMatrix() {
     <div className="app" data-theme={settings.theme} style={{ 
       "--base-font-size": `${settings.fontSize}px`, 
       "--cell-text-align": settings.textAlign,
-      "--cell-text-outline": getOutlineStyle(settings.textOutline, isDark)
+      "--cell-text-outline": getOutlineStyle(settings.textOutline, isDark),
+      "--header-top": cellEditing ? "86px" : "48px"
     }}>
       <style>{CSS}</style>
 
@@ -789,7 +806,7 @@ const CSS = `
 
 #root { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; text-align: left !important; display: block !important; }
 *{margin:0;padding:0;box-sizing:border-box}
-.app{min-height:100vh;background:var(--bg-base);color:var(--text-main);font-family:'Noto Sans JP',sans-serif;font-weight:300;padding:0 0 80px;overflow-x:auto}
+.app{min-height:100vh;background:var(--bg-base);color:var(--text-main);font-family:'Noto Sans JP',sans-serif;font-weight:300;padding:0 0 80px}
 
 .menu-bar{display:flex;align-items:center;height:48px;border-bottom:1px solid var(--border-light);padding:0 16px;position:sticky;top:0;background:var(--bg-base);z-index:20}
 .menu-left{position:relative;flex:0 0 auto;display:flex;align-items:center}
@@ -814,7 +831,7 @@ const CSS = `
 .menu-icon-btn:hover:not(:disabled){background:var(--border-light);color:var(--text-main)}
 .menu-icon-btn:disabled{opacity:0.3;cursor:default}
 
-.fmt-bar{display:flex;align-items:center;gap:4px;padding:6px 16px;border-bottom:1px solid var(--border-light);background:var(--bg-base);opacity:0;height:0;overflow:hidden;transition:all .15s}
+.fmt-bar{display:flex;align-items:center;gap:4px;padding:6px 16px;border-bottom:1px solid var(--border-light);background:var(--bg-base);opacity:0;height:0;overflow:hidden;transition:all .15s;position:sticky;top:48px;z-index:19}
 .fmt-bar.show{opacity:1;height:38px;padding:6px 16px}
 .fmt-sep{width:1px;height:18px;background:var(--border-mid);margin:0 4px}
 .fmt-color{width:18px;height:18px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:border-color .12s}
@@ -822,7 +839,7 @@ const CSS = `
 
 .matrix-wrap{overflow-x:auto;padding:24px 16px 0}
 .matrix{border-collapse:separate;border-spacing:0;table-layout:fixed;width:max-content}
-.matrix thead th{position:sticky;top:48px;background:var(--bg-base);z-index:10;padding:0 0 8px;text-align:left;vertical-align:bottom;user-select:none;border-left:1px solid var(--border-light)}
+.matrix thead th{position:sticky;top:var(--header-top, 48px);background:var(--bg-base);z-index:10;padding:0 0 8px;text-align:left;vertical-align:bottom;user-select:none;border-left:1px solid var(--border-light);transition:top .15s}
 .matrix thead th:first-child{border-left:none}
 .th-num{width:36px;min-width:36px}.th-grip{width:44px;min-width:44px}.th-actions{width:36px;min-width:36px}
 .col-header{display:flex;align-items:center;gap:2px;padding-right:8px}
