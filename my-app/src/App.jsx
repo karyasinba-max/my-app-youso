@@ -83,11 +83,14 @@ function RichCell({ html, onChange, onFocusCell, placeholder, bgColor }) {
   const hasBg = !!bgColor && bgColor !== "transparent";
 
   return (
-    <div className="rich-cell-wrap" data-placeholder={!focused && empty ? (placeholder || "—") : undefined}>
+    <div
+      className={"rich-cell-wrap" + (hasBg ? " has-bg" : "")}
+      data-placeholder={!focused && empty ? (placeholder || "—") : undefined}
+      style={hasBg ? { backgroundColor: bgColor } : undefined}
+    >
       <div
         ref={elRef}
         className={"rich-cell" + (focused ? " editing" : "") + (hasBg ? " has-bg" : "")}
-        style={hasBg ? { backgroundColor: bgColor } : undefined}
         contentEditable
         suppressContentEditableWarning
         onFocus={() => { setFocused(true); onFocusCell?.(elRef); }}
