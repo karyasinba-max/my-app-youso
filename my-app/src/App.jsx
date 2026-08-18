@@ -83,14 +83,11 @@ function RichCell({ html, onChange, onFocusCell, placeholder, bgColor }) {
   const hasBg = !!bgColor && bgColor !== "transparent";
 
   return (
-    <div
-      className={"rich-cell-wrap" + (hasBg ? " has-bg" : "")}
-      data-placeholder={!focused && empty ? (placeholder || "—") : undefined}
-      style={hasBg ? { backgroundColor: bgColor } : undefined}
-    >
+    <div className="rich-cell-wrap" data-placeholder={!focused && empty ? (placeholder || "—") : undefined}>
       <div
         ref={elRef}
         className={"rich-cell" + (focused ? " editing" : "") + (hasBg ? " has-bg" : "")}
+        style={hasBg ? { backgroundColor: bgColor } : undefined}
         contentEditable
         suppressContentEditableWarning
         onFocus={() => { setFocused(true); onFocusCell?.(elRef); }}
@@ -860,7 +857,7 @@ const CSS = `
 .matrix tbody tr:hover{background:var(--hover-base)}
 .row-dragging{opacity:.25}
 .row-over td{border-top:2px solid var(--text-main) !important}
-.matrix tbody td{padding:0;vertical-align:top;border-top:1px solid var(--border-light);border-left:1px solid var(--border-light)}
+.matrix tbody td{padding:0;vertical-align:top;border-top:1px solid var(--border-light);border-left:1px solid var(--border-light);height:1px}
 .matrix tbody td:first-child{border-left:none}
 .grip-cell{cursor:grab;display:flex;align-items:center;justify-content:center;min-height:52px;padding-top:16px;color:var(--text-muted);user-select:none}
 .grip-cell:active{cursor:grabbing}
@@ -869,7 +866,7 @@ const CSS = `
 tr:hover .row-delete{color:var(--text-faint)}
 .row-delete:hover{color:var(--accent-red) !important}
 
-.cell-wrap{position:relative;min-height:52px}
+.cell-wrap{position:relative;min-height:52px;height:100%}
 .cell-drag-handle{position:absolute;top:4px;right:4px;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:var(--border-main);cursor:grab;border-radius:3px;opacity:0;transition:opacity .12s;z-index:3}
 .cell-wrap:hover .cell-drag-handle{opacity:1}
 .cell-drag-handle:hover{background:var(--border-light);color:var(--text-muted)}
@@ -877,9 +874,9 @@ tr:hover .row-delete{color:var(--text-faint)}
 .cell-dragging{opacity:.3;background:var(--hover-base)}
 .cell-over{background:var(--cell-over) !important;box-shadow:inset 0 0 0 2px var(--accent-orange)}
 
-.rich-cell-wrap{position:relative;min-height:52px}
+.rich-cell-wrap{position:relative;min-height:52px;height:100%}
 .rich-cell-wrap[data-placeholder]::before{content:attr(data-placeholder);position:absolute;top:14px;left:12px;color:var(--border-main);font-style:italic;pointer-events:none;font-size:var(--base-font-size, 13px)}
-.rich-cell{min-height:52px;padding:14px 12px;font-size:var(--base-font-size, 13px);text-align:var(--cell-text-align, left);line-height:1.7;outline:none;word-break:break-word;white-space:pre-wrap;border-radius:2px;transition:background .1s}
+.rich-cell{min-height:52px;height:100%;padding:14px 12px;font-size:var(--base-font-size, 13px);text-align:var(--cell-text-align, left);line-height:1.7;outline:none;word-break:break-word;white-space:pre-wrap;border-radius:2px;transition:background .1s}
 .rich-cell:hover{background:var(--hover-cell)}
 .rich-cell.editing{background:var(--bg-surface);box-shadow:inset 0 0 0 1px var(--text-faint),0 0 0 3px var(--focus-ring)}
 .rich-cell.has-bg{text-shadow:var(--cell-text-outline, none);color:var(--text-main)}
