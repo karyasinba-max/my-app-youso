@@ -5,7 +5,7 @@ let _id = Date.now();
 const uid = (pfx = "x") => `${pfx}_${_id++}`;
 
 const DEFAULT_COLORS = ["#FFD6E8", "#FFD5B8", "#FFF3A3", "#D4F0C0", "#C4EEFF", "#E1D6FF"];
-const DEFAULT_COLS = ["場所","動機","売り","感情"];
+const DEFAULT_COLS = ["章だて","場所","UXの象徴的コマ","機能","UX(読者感情)"];
 const COL_MIN_W = 100;
 const COL_MAX_W = 500;
 const DEFAULT_W = 170;
