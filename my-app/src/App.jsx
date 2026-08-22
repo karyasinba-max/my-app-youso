@@ -650,8 +650,7 @@ export default function SceneMatrix() {
     <div className="app" data-theme={settings.theme} style={{ 
       "--base-font-size": `${settings.fontSize}px`, 
       "--cell-text-align": settings.textAlign,
-      "--cell-text-outline": getOutlineStyle(settings.textOutline, isDark),
-      "--header-top": cellEditing ? "86px" : "48px"
+      "--cell-text-outline": getOutlineStyle(settings.textOutline, isDark)
     }}>
       <style>{CSS}</style>
 
@@ -672,7 +671,7 @@ export default function SceneMatrix() {
               <th className="th-grip" />
               <th className="th-num" />
               {columns.map(col => (
-                <th key={col} style={{ width: getW(col), minWidth: getW(col), position: "relative" }}
+                <th key={col} style={{ width: getW(col), minWidth: getW(col) }}
                   draggable onDragStart={e => onColDragStart(e, col)}
                   onDragOver={e => { e.preventDefault(); setColOver(col); }}
                   onDragEnd={onColDragEnd} onDragLeave={() => setColOver(null)}
@@ -846,7 +845,7 @@ const CSS = `
 .menu-icon-btn:hover:not(:disabled){background:var(--border-light);color:var(--text-main)}
 .menu-icon-btn:disabled{opacity:0.3;cursor:default}
 
-.fmt-bar{display:flex;align-items:center;gap:4px;padding:6px 16px;border-bottom:1px solid var(--border-light);background:var(--bg-base);opacity:0;height:0;overflow:hidden;transition:all .15s;position:sticky;top:48px;z-index:19}
+.fmt-bar{display:flex;align-items:center;gap:4px;padding:6px 16px;border-bottom:1px solid var(--border-light);background:var(--bg-base);opacity:0;height:0;overflow:hidden;transition:all .15s;position:fixed;top:48px;left:0;right:0;z-index:19}
 .fmt-bar.show{opacity:1;height:38px;padding:6px 16px}
 .fmt-sep{width:1px;height:18px;background:var(--border-mid);margin:0 4px}
 .fmt-color{width:18px;height:18px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:border-color .12s}
@@ -854,7 +853,7 @@ const CSS = `
 
 .matrix-wrap{overflow-x:auto;padding:24px 16px 80px}
 .matrix{border-collapse:separate;border-spacing:0;table-layout:fixed;width:max-content}
-.matrix thead th{position:sticky;top:var(--header-top, 48px);background:var(--bg-base);z-index:10;padding:0 0 8px;text-align:left;vertical-align:bottom;user-select:none;border-left:1px solid var(--border-light);transition:top .15s}
+.matrix thead th{position:sticky;top:48px;background:var(--bg-base);z-index:10;padding:0 0 8px;text-align:left;vertical-align:bottom;user-select:none;border-left:1px solid var(--border-light)}
 .matrix thead th:first-child{border-left:none}
 .th-num{width:36px;min-width:36px}.th-grip{width:44px;min-width:44px}.th-actions{width:36px;min-width:36px}
 .col-header{display:flex;align-items:center;gap:2px;padding-right:8px}
