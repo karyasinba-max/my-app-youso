@@ -537,8 +537,22 @@ export default function SceneMatrix() {
   };
 
   /* ── scene ops ── */
-  const addScene = () => mutate(p => ({ ...p, scenes: [...p.scenes, emptyScene(p.columns)] }));
-  const deleteScene = (id) => mutate(p => ({ ...p, scenes: p.scenes.filter(s => s.id !== id) }));
+  const [selectedSceneId, setSelectedSceneId] = useState(null);
+  const addScene = () => {
+    const scene = emptyScene(project.columns);
+    mutate(p => {
+      const idx = p.scenes.findIndex(s => s.id === selectedSceneId);
+      const scenes = idx === -1
+        ? [...p.scenes, scene]
+        : [...p.scenes.slice(0, idx + 1), scene, ...p.scenes.slice(idx + 1)];
+      return { ...p, scenes };
+    });
+    setSelectedSceneId(scene.id);
+  };
+  const deleteScene = (id) => {
+    mutate(p => ({ ...p, scenes: p.scenes.filter(s => s.id !== id) }));
+    setSelectedSceneId(sel => sel === id ? null : sel);
+  };
   const updateCell = (id, col, val) => {
     mutate(p => ({ ...p, scenes: p.scenes.map(s => s.id === id ? { ...s, cells: { ...s.cells, [col]: val } } : s) }));
   };
@@ -686,7 +700,8 @@ export default function SceneMatrix() {
               <tr><td colSpan={columns.length + 3}><div className="empty-state">シーンを追加してください</div></td></tr>
             ) : scenes.map((scene, idx) => (
               <tr key={scene.id}
-                className={[ rowDrag === idx ? "row-dragging" : "", rowOver === idx && rowDrag !== null && rowDrag !== idx ? "row-over" : "" ].join(" ")}>
+                onClick={() => setSelectedSceneId(scene.id)}
+                className={[ rowDrag === idx ? "row-dragging" : "", rowOver === idx && rowDrag !== null && rowDrag !== idx ? "row-over" : "", selectedSceneId === scene.id ? "row-selected" : "" ].join(" ")}>
                 <td>
                   <div className="grip-cell" draggable
                     onDragStart={e => onRowDragStart(e, idx)} onDragEnd={onRowDragEnd}
@@ -714,7 +729,7 @@ export default function SceneMatrix() {
                           html={scene.cells[col] || ""}
                           bgColor={scene.bgColors?.[col]}
                           onChange={v => updateCell(scene.id, col, v)}
-                          onFocusCell={(ref) => { setActiveCellRef(ref ? { current: ref.current } : null); setActiveCellInfo(ref ? { sceneId: scene.id, col } : null); setCellEditing(!!ref); }}
+                          onFocusCell={(ref) => { setActiveCellRef(ref ? { current: ref.current } : null); setActiveCellInfo(ref ? { sceneId: scene.id, col } : null); setCellEditing(!!ref); if (ref) setSelectedSceneId(scene.id); }}
                           placeholder={col} />
                       </div>
                     </td>
@@ -806,7 +821,7 @@ const CSS = `
 
 #root { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; text-align: left !important; display: block !important; }
 *{margin:0;padding:0;box-sizing:border-box}
-.app{min-height:100vh;background:var(--bg-base);color:var(--text-main);font-family:'Noto Sans JP',sans-serif;font-weight:300;padding:0 0 80px}
+.app{min-height:100vh;background:var(--bg-base);color:var(--text-main);font-family:'Noto Sans JP',sans-serif;font-weight:300}
 
 .menu-bar{display:flex;align-items:center;height:48px;border-bottom:1px solid var(--border-light);padding:0 16px;position:sticky;top:0;background:var(--bg-base);z-index:20}
 .menu-left{position:relative;flex:0 0 auto;display:flex;align-items:center}
@@ -837,7 +852,7 @@ const CSS = `
 .fmt-color{width:18px;height:18px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:border-color .12s}
 .fmt-color:hover{border-color:var(--text-main)}
 
-.matrix-wrap{overflow-x:auto;padding:24px 16px 0}
+.matrix-wrap{overflow-x:auto;padding:24px 16px 80px}
 .matrix{border-collapse:separate;border-spacing:0;table-layout:fixed;width:max-content}
 .matrix thead th{position:sticky;top:var(--header-top, 48px);background:var(--bg-base);z-index:10;padding:0 0 8px;text-align:left;vertical-align:bottom;user-select:none;border-left:1px solid var(--border-light);transition:top .15s}
 .matrix thead th:first-child{border-left:none}
@@ -857,6 +872,9 @@ const CSS = `
 .matrix tbody tr:hover{background:var(--hover-base)}
 .row-dragging{opacity:.25}
 .row-over td{border-top:2px solid var(--text-main) !important}
+.row-selected td{background:var(--hover-base)}
+.row-selected td:first-child{box-shadow:inset 3px 0 0 var(--accent-orange)}
+.row-selected .row-num{color:var(--accent-orange)}
 .matrix tbody td{padding:0;vertical-align:top;border-top:1px solid var(--border-light);border-left:1px solid var(--border-light);height:1px}
 .matrix tbody td:first-child{border-left:none}
 .grip-cell{cursor:grab;display:flex;align-items:center;justify-content:center;min-height:52px;padding-top:16px;color:var(--text-muted);user-select:none}
@@ -882,7 +900,7 @@ tr:hover .row-delete{color:var(--text-faint)}
 .rich-cell.has-bg{text-shadow:var(--cell-text-outline, none);color:var(--text-main)}
 .rich-cell.has-bg:hover{filter:brightness(0.96)}
 
-.actions-bar{display:flex;gap:12px;margin-top:16px;padding:0 16px 0 96px;flex-wrap:wrap}
+.actions-bar{display:flex;gap:12px;position:fixed;left:0;right:0;bottom:0;padding:12px 16px 12px 96px;background:var(--bg-base);border-top:1px solid var(--border-light);flex-wrap:wrap;z-index:20}
 .btn-ghost{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.05em;color:var(--text-muted);background:none;border:1px dashed var(--border-main);border-radius:4px;padding:8px 16px;cursor:pointer;transition:all .12s;white-space:nowrap}
 .btn-ghost:hover{color:var(--text-main);border-color:var(--text-muted);background:var(--hover-base)}
 .add-col-inline{display:flex;align-items:center;gap:6px}
@@ -926,5 +944,5 @@ tr:hover .row-delete{color:var(--text-faint)}
 .color-picker-add { width:24px; height:24px; border-radius:4px; border:1px dashed var(--border-main); background:transparent; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; transition:all .1s }
 .color-picker-add:hover { border-color:var(--text-muted); color:var(--text-main) }
 
-@media(max-width:600px){.actions-bar{padding:0 12px}}
+@media(max-width:600px){.actions-bar{padding:12px}}
 `;
