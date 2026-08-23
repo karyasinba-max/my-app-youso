@@ -404,8 +404,6 @@ export default function SceneMatrix() {
     const root = document.documentElement;
     const update = () => {
       root.style.setProperty("--vv-top", `${vv.offsetTop}px`);
-      const bottomGap = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
-      root.style.setProperty("--vv-bottom", `${bottomGap}px`);
     };
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
@@ -961,7 +959,7 @@ tr:hover .row-delete{color:var(--text-faint)}
 .rich-cell.has-bg{text-shadow:var(--cell-text-outline, none);color:var(--text-main)}
 .rich-cell.has-bg:hover{filter:brightness(0.96)}
 
-.actions-bar{display:flex;gap:12px;position:fixed;left:0;right:0;bottom:0;padding:12px 16px 12px 96px;background:var(--bg-base);border-top:1px solid var(--border-light);flex-wrap:wrap;z-index:20;transform:translateY(calc(-1 * var(--vv-bottom, 0px)))}
+.actions-bar{display:flex;gap:12px;position:fixed;left:0;right:0;bottom:0;padding:12px 16px 12px 96px;background:var(--bg-base);border-top:1px solid var(--border-light);flex-wrap:wrap;z-index:20}
 .btn-ghost{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.05em;color:var(--text-muted);background:none;border:1px dashed var(--border-main);border-radius:4px;padding:8px 16px;cursor:pointer;transition:all .12s;white-space:nowrap}
 .btn-ghost:hover{color:var(--text-main);border-color:var(--text-muted);background:var(--hover-base)}
 .add-col-inline{display:flex;align-items:center;gap:6px}
