@@ -354,6 +354,68 @@ export default function SceneMatrix() {
     return () => window.removeEventListener("beforeunload", h);
   }, [dirty]);
 
+  /* ── refs for handlers that must always see the latest value without resubscribing ── */
+  const dirtyRef = useRef(dirty);
+  const projectRef = useRef(project);
+  useEffect(() => { dirtyRef.current = dirty; projectRef.current = project; });
+
+  /* ── mobile back/gesture navigation guard: intercept with a confirm dialog when dirty ──
+     (beforeunload's native dialog is unreliable/suppressed on mobile browsers for back nav) */
+  useEffect(() => {
+    window.history.pushState({ __smxGuard: true }, "");
+    let leaving = false;
+    const onPopState = () => {
+      if (leaving) return;
+      if (dirtyRef.current) {
+        if (window.confirm("未保存の変更があります。このページを離れますか？")) {
+          leaving = true;
+          window.history.back();
+        } else {
+          window.history.pushState({ __smxGuard: true }, "");
+        }
+      } else {
+        window.history.back();
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  /* ── auto-save when the app is backgrounded (home button / app switch / tab hidden) ──
+     home-button backgrounding can't be intercepted with a confirm dialog (no cancelable
+     browser event exists for it), so we silently persist instead of risking data loss */
+  useEffect(() => {
+    const save = () => { if (dirtyRef.current) doSave(projectRef.current); };
+    const onVisibility = () => { if (document.visibilityState === "hidden") save(); };
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", save);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", save);
+    };
+  }, []);
+
+  /* ── keep the pinned bars visible above the mobile on-screen keyboard ──
+     the keyboard pans the visual viewport independently of the layout viewport,
+     which leaves plain position:fixed bars stranded off-screen */
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const root = document.documentElement;
+    const update = () => {
+      root.style.setProperty("--vv-top", `${vv.offsetTop}px`);
+      const bottomGap = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+      root.style.setProperty("--vv-bottom", `${bottomGap}px`);
+    };
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    update();
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
+
   /* ── load on mount ── */
   useEffect(() => {
     (async () => {
@@ -822,7 +884,7 @@ const CSS = `
 *{margin:0;padding:0;box-sizing:border-box}
 .app{min-height:100vh;background:var(--bg-base);color:var(--text-main);font-family:'Noto Sans JP',sans-serif;font-weight:300}
 
-.menu-bar{display:flex;align-items:center;height:48px;border-bottom:1px solid var(--border-light);padding:0 16px;position:sticky;top:0;background:var(--bg-base);z-index:20}
+.menu-bar{display:flex;align-items:center;height:48px;border-bottom:1px solid var(--border-light);padding:0 16px;position:sticky;top:0;background:var(--bg-base);z-index:20;transform:translateY(var(--vv-top, 0px))}
 .menu-left{position:relative;flex:0 0 auto;display:flex;align-items:center}
 .menu-hamburger{background:none;border:none;color:var(--text-muted);cursor:pointer;padding:6px;border-radius:4px;display:flex;align-items:center}
 .menu-hamburger:hover{background:var(--border-light);color:var(--text-main)}
@@ -845,7 +907,7 @@ const CSS = `
 .menu-icon-btn:hover:not(:disabled){background:var(--border-light);color:var(--text-main)}
 .menu-icon-btn:disabled{opacity:0.3;cursor:default}
 
-.fmt-bar{display:flex;align-items:center;gap:4px;padding:6px 16px;border-bottom:1px solid var(--border-light);background:var(--bg-base);opacity:0;height:0;overflow:hidden;transition:all .15s;position:fixed;top:48px;left:0;right:0;z-index:19}
+.fmt-bar{display:flex;align-items:center;gap:4px;padding:6px 16px;border-bottom:1px solid var(--border-light);background:var(--bg-base);opacity:0;height:0;overflow:hidden;transition:opacity .15s,height .15s,padding .15s;position:fixed;top:48px;left:0;right:0;z-index:19;transform:translateY(var(--vv-top, 0px))}
 .fmt-bar.show{opacity:1;height:38px;padding:6px 16px}
 .fmt-sep{width:1px;height:18px;background:var(--border-mid);margin:0 4px}
 .fmt-color{width:18px;height:18px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:border-color .12s}
@@ -899,7 +961,7 @@ tr:hover .row-delete{color:var(--text-faint)}
 .rich-cell.has-bg{text-shadow:var(--cell-text-outline, none);color:var(--text-main)}
 .rich-cell.has-bg:hover{filter:brightness(0.96)}
 
-.actions-bar{display:flex;gap:12px;position:fixed;left:0;right:0;bottom:0;padding:12px 16px 12px 96px;background:var(--bg-base);border-top:1px solid var(--border-light);flex-wrap:wrap;z-index:20}
+.actions-bar{display:flex;gap:12px;position:fixed;left:0;right:0;bottom:0;padding:12px 16px 12px 96px;background:var(--bg-base);border-top:1px solid var(--border-light);flex-wrap:wrap;z-index:20;transform:translateY(calc(-1 * var(--vv-bottom, 0px)))}
 .btn-ghost{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.05em;color:var(--text-muted);background:none;border:1px dashed var(--border-main);border-radius:4px;padding:8px 16px;cursor:pointer;transition:all .12s;white-space:nowrap}
 .btn-ghost:hover{color:var(--text-main);border-color:var(--text-muted);background:var(--hover-base)}
 .add-col-inline{display:flex;align-items:center;gap:6px}
